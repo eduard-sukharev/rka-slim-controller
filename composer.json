@@ -22,7 +22,8 @@
     "require": {
         "php": ">=5.3",
         "slim/slim": "~2.4",
-        "pimple/pimple": "^3.0"
+        "pimple/pimple": "^3.0",
+        "symfony/yaml": " ~2.8"
     },
     "autoload": {
         "psr-4": {

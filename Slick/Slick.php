@@ -12,6 +12,7 @@ namespace Slick;
 
 use Pimple\Container;
 use Slim\Http\Response;
+use Symfony\Component\Yaml\Yaml;
 
 class Slick
 {
@@ -141,6 +142,14 @@ class Slick
         }
     }
 
+    public function setupRoutes($configFilename)
+    {
+        $config = Yaml::parse(file_get_contents($configFilename));
+        foreach ($config as $routeName => $routeConfig) {
+            $this->map($routeConfig['url'], $routeConfig['handler'])->via($routeConfig['method']);
+        }
+    }
+
     /**
      * Create a closure that instantiates (or gets from container) and then calls
      * the action method.
@@ -177,7 +186,7 @@ class Slick
             $reflectionMethod = new \ReflectionMethod($controller, $actionName);
             $reflectionParams = $reflectionMethod->getParameters();
             if (!empty($reflectionParams)) {
-                if ($reflectionParams[0]->getClass()->implementsInterface('Slim\Http\Request')) {
+                if ($reflectionParams[0]->getClass()->isSubclassOf('Slim\Http\Request')) {
                     array_unshift($controllerArguments, $psrContainer['request']);
                 }
             }

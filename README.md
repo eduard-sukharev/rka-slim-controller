@@ -6,10 +6,14 @@ controllers with action methods wherever you would use a closure when routing (t
 The controller can optionally be loaded from DI container, allowing you to inject dependencies as required.
 
 Mostly this copy-pastes and rewrites only base Slim app class, so this still depends on Slim2 framework.
-It requires PHP 5.3 at least, assumes that you install it with composer and use Composer's autoloader.
+It requires **PHP 5.3** at least, assumes that you install it with composer and use Composer's autoloader.
 
 [1]: http://www.slimframework.com/
 [2]: https://github.com/akrabat/rka-slim-controller
+
+## Additional to Slim2 features
+- Configuring routes with Yaml file
+- Support for Controller classes in routing config
 
 ## Installation
 
