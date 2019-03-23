@@ -1,17 +1,19 @@
-# RKA Slim Controller
+# Slick Framework
 
-An extension to [Slim Framework][1] that allows you use to dynamically
-instantiated controllers with action methods wherever you would use a
-closure when routing.
+This framework is based off the [Slim Framework][1], but adds some conveniences, like the ability to instantiate
+controllers with action methods wherever you would use a closure when routing (this feature came directly from [rka-slim-controller][2]).
 
-The controller can optionally be loaded from Slim's DI container,
-allowing you to inject dependencies as required.
+The controller can optionally be loaded from DI container, allowing you to inject dependencies as required.
+
+Mostly this copy-pastes and rewrites only base Slim app class, so this still depends on Slim2 framework.
+It requires PHP 5.3 at least, assumes that you install it with composer and use Composer's autoloader.
 
 [1]: http://www.slimframework.com/
+[2]: https://github.com/akrabat/rka-slim-controller
 
 ## Installation
 
-    composer require akrabat/rka-slim-controller
+    composer require ed-sukharev/slick-framework
 
 
 ## Usage
@@ -21,76 +23,30 @@ wherever you would usually use a closure:
 
 e.g.
 
-    $app = new \RKA\Slim();
+    $app = new \Slick\Slick();
     $app->get('/hello:name', 'App\IndexController:home');
 
 
 You can also register the controller with Slim's DI container:
 
-    $app = new \RKA\Slim();
+    $app = new \Slick\Slick();
 
-    $app->container->singleton('App\IndexController', function ($container) {
+    $app->container['App\IndexController'] = function ($container) {
         // Retrieve any required dependencies from the container and
         // inject into the constructor of the controller
 
         return new \App\IndexController();
-    });
+    };
 
     $app->get('/', 'App\IndexController:index');
 
 
 ## Controller class methods
 
-*RKA Slim Controller* will call the controller's `setApp()`, `setRequest()`
-and `setResponse()` methods if they exist and populate appropriately. It will
-then call the controller's `init()`` method.
-
-Hence, a typical controller may look like:
-
-    <?php
-    namespace App;
-
-    class IndexController
-    {
-        // Optional properties
-        protected $app;
-        protected $request;
-        protected $response;
-
-        public function index()
-        {
-            echo "This is the home page";
-        }
-
-        public function hello($name)
-        {
-            echo "Hello, $name";
-        }
-
-        // Optional setters
-        public function setApp($app)
-        {
-            $this->app = $app;
-        }
-
-        public function setRequest($request)
-        {
-            $this->request = $request;
-        }
-
-        public function setResponse($response)
-        {
-            $this->response = $response;
-        }
-
-        // Init
-        public function init()
-        {
-            // do things now that app, request and response are set.
-        }
-    }
-
-
-## Example project
-
-Look at [slim-di](https://github.com/akrabat/slim-di).
+Just as Slim does, Slick passes controller actions it's arguments. Additionally, if the first argument of controller
+action is type hinted as `\Slim\Http\Request`, then actual request will be passed in as first parameter, and then the 
+rest of Slim parameters.
+*Slick* assumes that you inject all dependencies into your controller inside DI container. For that rare case when you 
+still need DI container, Slick provides `\Slick\ContainerAwareInterface`, which you may implement in controller, 
+or better yet, extend you controller from `\Slick\SlickController`.
+Slick will set *PSR-11* compatible DI container into it.

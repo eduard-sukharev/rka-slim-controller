@@ -1,10 +1,11 @@
 {
-    "name": "akrabat/rka-slim-controller",
-    "description": "Dynamically instantiated controller classes for Slim Framework",
+    "name": "ed.suharev/slick-framework",
+    "description": "Simple PHP 5.3 compatible framework based off Slim 2 Framework and RKA Controller",
+    "version": "1.0.0",
     "keywords": [
-        "slim", "controller"
+        "slim", "controller", "framework", "php5.3", "slick"
     ],
-    "homepage": "http://github.com/akrabat/rka-slim-controller",
+    "homepage": "http://github.com/eduard-sukharev/slick-framework",
     "type": "library",
     "license": "BSD-3-Clause",
     "authors": [
@@ -12,15 +13,20 @@
             "name": "Rob Allen",
             "email": "rob@akrabat.com",
             "homepage": "http://akrabat.com"
+        },
+        {
+            "name": "Eduard Sukharev",
+            "email": "sukharev.eh@gmail.com"
         }
     ],
     "require": {
-        "php": ">=5.4",
-        "slim/slim": "~2.4"
+        "php": ">=5.3",
+        "slim/slim": "~2.4",
+        "pimple/pimple": "^3.0"
     },
     "autoload": {
         "psr-4": {
-            "RKA\\": "RKA"
+            "Slick\\": "Slick"
         }
     }
 }
