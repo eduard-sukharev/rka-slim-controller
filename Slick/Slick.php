@@ -64,48 +64,48 @@ class Slick
     public function __construct(array $userSettings = array())
     {
         // Setup IoC container
-        $this->container = new Container();
+        $this->container = new PsrContainer();
         $this->container['settings'] = array_merge(static::getDefaultSettings(), $userSettings);
 
         // Default environment
-        $this->container['environment'] = function ($c) {
+        $this->container->singleton('environment', function ($c) {
             return \Slim\Environment::getInstance();
-        };
+        });
 
         // Default request
-        $this->container['request'] = function ($c) {
+        $this->container->singleton('request', function ($c) {
             return new \Slim\Http\Request($c['environment']);
-        };
+        });
 
         // Default response
-        $this->container['response'] = function ($c) {
+        $this->container->singleton('response', function ($c) {
             return new \Slim\Http\Response();
-        };
+        });
 
         // Default router
-        $this->container['router'] = function ($c) {
+        $this->container->singleton('router', function ($c) {
             return new \Slim\Router();
-        };
+        });
 
         // Default view
-        $this->container['view'] = function ($c) {
+        $this->container->singleton('view', function ($c) {
             $viewClass = $c['settings']['view'];
             $templatesPath = $c['settings']['templates.path'];
 
             $view = ($viewClass instanceOf \Slim\View) ? $viewClass : new $viewClass;
             $view->setTemplatesDirectory($templatesPath);
             return $view;
-        };
+        });
 
         // Default log writer
-        $this->container['logWriter'] = function ($c) {
+        $this->container->singleton('logWriter', function ($c) {
             $logWriter = $c['settings']['log.writer'];
 
             return is_object($logWriter) ? $logWriter : new \Slim\LogWriter($c['environment']['slim.errors']);
-        };
+        });
 
         // Default log
-        $this->container['log'] = function ($c) {
+        $this->container->singleton('log', function ($c) {
             $log = new \Slim\Log($c['logWriter']);
             $log->setEnabled($c['settings']['log.enabled']);
             $log->setLevel($c['settings']['log.level']);
@@ -113,7 +113,7 @@ class Slick
             $env['slim.log'] = $log;
 
             return $log;
-        };
+        });
 
         // Default mode
         $this->container['mode'] = function ($c) {
@@ -166,38 +166,41 @@ class Slick
 
         // Create a callable that will find or create the controller instance
         // and then execute the action
-        $psrContainer = new \Pimple\Psr11\Container($this->container);
+        $container = $this->container;
         $response = $this->response();
-        $callable = function () use ($response, $psrContainer, $controllerName, $actionName) {
+        $callable = function () use ($response, $container, $controllerName, $actionName) {
 
             // Try to fetch the controller instance from DI container
-            if ($psrContainer->has($controllerName)) {
-                $controller = $psrContainer->get($controllerName);
+            if (isset($container[$controllerName])) {
+                $controller = $container[$controllerName];
             } else {
                 // not in container, assume it can be directly instantiated
                 $controller = new $controllerName();
             }
 
             if ($controller instanceof ContainerAwareInterface) {
-                $controller->setContainer($psrContainer);
+                $controller->setContainer($container);
             }
 
             $controllerArguments = func_get_args();
             $reflectionMethod = new \ReflectionMethod($controller, $actionName);
             $reflectionParams = $reflectionMethod->getParameters();
             if (!empty($reflectionParams)) {
-                if ($reflectionParams[0]->getClass()->isSubclassOf('Slim\Http\Request')) {
-                    array_unshift($controllerArguments, $psrContainer['request']);
+                $firstArgumentClass = $reflectionParams[0]->getClass();
+                if ($firstArgumentClass->name === 'Slim\Http\Request'
+                    || $firstArgumentClass->isSubclassOf('Slim\Http\Request')
+                ) {
+                    array_unshift($controllerArguments, $container['request']);
                 }
             }
 
-            $result = call_user_func_array(array($controller, $actionName), func_get_args());
+            $result = call_user_func_array(array($controller, $actionName), $controllerArguments);
             if ($result instanceof Response) {
-                $response = $result;
+                $container['response'] = $result;
 
                 return true;
             } elseif (is_string($result)) {
-                $response = new Response($result);
+                $container['response'] = new Response($result);
 
                 return true;
             }
